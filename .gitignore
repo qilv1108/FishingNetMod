@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+
+# IDE/editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Claude/local automation
+.claude/
+
+# Logs/temp
+*.log
+*.tmp
+*.temp
+
+# Packages/artifacts
+*.nupkg
+*.snupkg
+*.zip
+
+# External reference source checkout
+SMAPI/

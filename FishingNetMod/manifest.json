@@ -1,0 +1,10 @@
+{
+  "Name": "Fishing Net Mod",
+  "Author": "ChenJianCan",
+  "Version": "0.1.0",
+  "Description": "Adds fishing net tools to Stardew Valley.",
+  "UniqueID": "ChenJianCan.FishingNetMod",
+  "EntryDll": "FishingNetMod.dll",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": []
+}

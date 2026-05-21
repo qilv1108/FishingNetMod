@@ -1,0 +1,36 @@
+using FishingNetMod.Data;
+using StardewValley;
+using SObject = StardewValley.Object;
+
+namespace FishingNetMod.Items;
+
+public sealed class FishingNetItemFactory
+{
+    public const string NetLevelModDataKey = "ChenJianCan.FishingNetMod/NetLevel";
+
+    public Item Create(NetLevelData data)
+    {
+        Item item = new SObject("771", 1);
+        item.modData[NetLevelModDataKey] = data.CommandName;
+        item.Name = data.DisplayName;
+        return item;
+    }
+
+    public bool TryGetNetData(Item? item, out NetLevelData? data)
+    {
+        data = null;
+
+        if (item is null)
+            return false;
+
+        if (!item.modData.TryGetValue(NetLevelModDataKey, out string? value))
+            return false;
+
+        return TryGetNetDataValue(value, out data);
+    }
+
+    public static bool TryGetNetDataValue(string? value, out NetLevelData? data)
+    {
+        return NetLevelData.TryParse(value, out data);
+    }
+}
