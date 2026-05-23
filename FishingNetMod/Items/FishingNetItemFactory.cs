@@ -10,7 +10,16 @@ public sealed class FishingNetItemFactory
 
     public Item Create(NetLevelData data)
     {
-        Item item = new SObject("771", 1);
+        Item item;
+        try
+        {
+            item = new SObject(data.ItemId, 1);
+        }
+        catch
+        {
+            item = new SObject("771", 1);
+        }
+
         item.modData[NetLevelModDataKey] = data.CommandName;
         item.Name = data.DisplayName;
         return item;
@@ -24,7 +33,7 @@ public sealed class FishingNetItemFactory
             return false;
 
         if (!item.modData.TryGetValue(NetLevelModDataKey, out string? value))
-            return false;
+            return TryGetNetDataQualifiedItemId(item.QualifiedItemId, out data);
 
         return TryGetNetDataValue(value, out data);
     }
@@ -32,5 +41,10 @@ public sealed class FishingNetItemFactory
     public static bool TryGetNetDataValue(string? value, out NetLevelData? data)
     {
         return NetLevelData.TryParse(value, out data);
+    }
+
+    public static bool TryGetNetDataQualifiedItemId(string? qualifiedItemId, out NetLevelData? data)
+    {
+        return NetLevelData.TryParseItemId(qualifiedItemId, out data);
     }
 }

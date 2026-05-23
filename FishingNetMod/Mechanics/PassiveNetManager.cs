@@ -1,5 +1,6 @@
 using FishingNetMod.Data;
 using FishingNetMod.Items;
+using FishingNetMod.Quests;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -13,16 +14,18 @@ internal sealed class PassiveNetManager
     private readonly List<PassiveNetData> nets = new();
     private readonly FishingNetItemFactory itemFactory;
     private readonly IFishProvider fishProvider;
+    private readonly QuestProgressTracker? questProgressTracker;
 
     public PassiveNetManager()
         : this(new FishingNetItemFactory(), new VanillaFishProvider())
     {
     }
 
-    public PassiveNetManager(FishingNetItemFactory itemFactory, IFishProvider fishProvider)
+    public PassiveNetManager(FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null)
     {
         this.itemFactory = itemFactory;
         this.fishProvider = fishProvider;
+        this.questProgressTracker = questProgressTracker;
     }
 
     public IReadOnlyList<PassiveNetData> Nets => this.nets;
@@ -64,8 +67,7 @@ internal sealed class PassiveNetManager
 
     public bool TryHarvest(Farmer player, GameLocation location, Vector2 targetTile, out string? error)
     {
-        PassiveNetData? data = this.nets.FirstOrDefault(net => net.LocationName == location.Name && net.Tile == targetTile);
-        if (data is null)
+        if (!this.TryGetHarvestableNet(location.Name, targetTile, out PassiveNetData? data) || data is null)
         {
             error = null;
             return false;
@@ -74,6 +76,7 @@ internal sealed class PassiveNetManager
         foreach (PassiveNetHarvestData harvest in data.Harvest)
         {
             Item item = ItemRegistry.Create(harvest.QualifiedItemId, harvest.Stack);
+            item.Quality = harvest.Quality;
             this.GiveOrDrop(player, location, item);
         }
 
@@ -81,6 +84,12 @@ internal sealed class PassiveNetManager
         this.nets.Remove(data);
         error = null;
         return true;
+    }
+
+    public bool TryGetHarvestableNet(string locationName, Vector2 targetTile, out PassiveNetData? data)
+    {
+        data = this.nets.FirstOrDefault(net => net.LocationName == locationName && net.Tile == targetTile);
+        return data is not null;
     }
 
     public void ProduceDaily(GameLocation location)
@@ -95,7 +104,9 @@ internal sealed class PassiveNetManager
                 if (fish is null)
                     continue;
 
-                net.Harvest.Add(new PassiveNetHarvestData(fish.QualifiedItemId, fish.Stack));
+                var harvest = new PassiveNetHarvestData(fish.QualifiedItemId, fish.Stack, fish.Quality);
+                net.Harvest.Add(harvest);
+                this.questProgressTracker?.RecordNetCatch(net.Level, harvest.Quality, Game1.currentSeason);
             }
         }
     }

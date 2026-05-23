@@ -1,6 +1,8 @@
 using FishingNetMod.Data;
 using FishingNetMod.Items;
 using FishingNetMod.Mechanics;
+using FishingNetMod.Menus;
+using FishingNetMod.Quests;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -14,12 +16,15 @@ internal sealed class ModEntry : Mod
     private ActiveFishingNet? activeFishingNet;
     private PassiveNetManager? passiveNetManager;
     private PassiveNetRenderer? passiveNetRenderer;
+    private QuestProgressTracker? questProgressTracker;
 
     public override void Entry(IModHelper helper)
     {
         this.itemFactory = new FishingNetItemFactory();
-        this.activeFishingNet = new ActiveFishingNet(this.Monitor, this.itemFactory, new VanillaFishProvider());
-        this.passiveNetManager = new PassiveNetManager(this.itemFactory, new VanillaFishProvider());
+        var fishProvider = new VanillaFishProvider();
+        this.questProgressTracker = new QuestProgressTracker();
+        this.activeFishingNet = new ActiveFishingNet(this.Monitor, this.itemFactory, fishProvider, this.questProgressTracker);
+        this.passiveNetManager = new PassiveNetManager(this.itemFactory, fishProvider, this.questProgressTracker);
         this.passiveNetRenderer = new PassiveNetRenderer();
 
         helper.ConsoleCommands.Add(
@@ -27,12 +32,20 @@ internal sealed class ModEntry : Mod
             "Fishing Net Mod debug command. Usage: fishing_net give <copper|iron|gold|iridium>",
             this.HandleFishingNetCommand);
 
+        helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
         helper.Events.GameLoop.Saving += this.OnSaving;
         helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+        helper.Events.GameLoop.DayEnding += this.OnDayEnding;
         helper.Events.Display.RenderedWorld += this.OnRenderedWorld;
         this.Monitor.Log("Fishing Net Mod loaded.", LogLevel.Info);
+    }
+
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+    {
+        if (!this.Helper.ModRegistry.IsLoaded("Pathoschild.ContentPatcher"))
+            this.Monitor.Log("Content Patcher is not loaded. Fishing net recipes, mail, dialogue, and custom item data may be unavailable.", LogLevel.Warn);
     }
 
     private void HandleFishingNetCommand(string command, string[] args)
@@ -72,6 +85,9 @@ internal sealed class ModEntry : Mod
         if (!Context.IsWorldReady)
             return;
 
+        if (Game1.activeClickableMenu is not null)
+            return;
+
         if (e.Button.IsUseToolButton())
         {
             if (this.activeFishingNet!.TryUse(Game1.player, Game1.currentLocation))
@@ -83,11 +99,13 @@ internal sealed class ModEntry : Mod
             return;
 
         Vector2 targetTile = this.GetFacingTile(Game1.player);
-        if (this.passiveNetManager!.TryHarvest(Game1.player, Game1.currentLocation, targetTile, out string? harvestError))
+        GameLocation location = Game1.currentLocation;
+        if (this.passiveNetManager!.TryGetHarvestableNet(location.Name, targetTile, out PassiveNetData? harvestable) && harvestable is not null)
         {
             this.Helper.Input.Suppress(e.Button);
-            if (harvestError is not null)
-                Game1.showRedMessage(harvestError);
+            Game1.activeClickableMenu = new NetHarvestChallengeMenu(
+                onSuccess: () => this.CompletePassiveHarvest(Game1.player, location, targetTile),
+                onFailure: () => Game1.showRedMessage("收网失败。"));
             return;
         }
 
@@ -106,6 +124,18 @@ internal sealed class ModEntry : Mod
         this.Helper.Input.Suppress(e.Button);
     }
 
+    private void CompletePassiveHarvest(Farmer player, GameLocation location, Vector2 targetTile)
+    {
+        if (this.passiveNetManager!.TryHarvest(player, location, targetTile, out string? harvestError))
+        {
+            Game1.addHUDMessage(new HUDMessage("收网成功。", HUDMessage.newQuest_type));
+            return;
+        }
+
+        if (harvestError is not null)
+            Game1.showRedMessage(harvestError);
+    }
+
     private Vector2 GetFacingTile(Farmer player)
     {
         Vector2 tile = player.Tile;
@@ -121,11 +151,14 @@ internal sealed class ModEntry : Mod
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
+        this.questProgressTracker!.Load(this.Helper);
         this.passiveNetManager!.Load(this.Helper);
+        this.ApplyQuestUnlocks(Game1.player);
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
     {
+        this.questProgressTracker!.Save(this.Helper);
         this.passiveNetManager!.Save(this.Helper);
     }
 
@@ -135,8 +168,32 @@ internal sealed class ModEntry : Mod
             this.passiveNetManager!.ProduceDaily(location);
     }
 
+    private void OnDayEnding(object? sender, DayEndingEventArgs e)
+    {
+        this.ApplyQuestUnlocks(Game1.player);
+    }
+
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         this.passiveNetRenderer!.Draw(e.SpriteBatch, this.passiveNetManager!.Nets);
+    }
+
+    private void ApplyQuestUnlocks(Farmer player)
+    {
+        QuestUnlockPlan plan = this.questProgressTracker!.EvaluateUnlocks(QuestPlayerSnapshot.FromFarmer(player));
+        if (!plan.HasChanges)
+            return;
+
+        foreach (string recipe in plan.RecipesToUnlock)
+        {
+            player.craftingRecipes[recipe] = 0;
+            this.Monitor.Log($"Unlocked fishing net recipe: {recipe}", LogLevel.Info);
+        }
+
+        foreach (string mailId in plan.MailToQueue)
+        {
+            player.mailForTomorrow.Add(mailId);
+            this.Monitor.Log($"Queued fishing net quest mail: {mailId}", LogLevel.Trace);
+        }
     }
 }

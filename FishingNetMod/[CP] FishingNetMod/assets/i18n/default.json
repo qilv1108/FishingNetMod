@@ -1,0 +1,15 @@
+{
+  "item.copper.name": "Copper Fishing Net",
+  "item.copper.description": "A basic fishing net. Cast it by hand or leave it in water for later harvest.",
+  "item.iron.name": "Iron Fishing Net",
+  "item.iron.description": "A sturdier fishing net that can catch more fish at once.",
+  "item.gold.name": "Gold Fishing Net",
+  "item.gold.description": "An efficient fishing net suited for higher-quality catches.",
+  "item.iridium.name": "Iridium Fishing Net",
+  "item.iridium.description": "A top-tier fishing net that is light and efficient.",
+  "mail.copper": "I hear you have been studying the water more closely. Come by the shop. I have an idea for you.   -Willy",
+  "mail.iron": "Your copper net has proved itself. Try making an iron net; it should help you gather experience faster.   -Willy",
+  "mail.gold": "If you are chasing better quality, a gold net is the next step. Keep going.   -Willy",
+  "mail.iridium": "Real mastery comes from practicing through every season. The iridium net recipe is yours now.   -Willy",
+  "dialogue.willy.intro": "Fishing is not just one method. Try a fishing net and you may learn the water in a different way."
+}

@@ -1,4 +1,5 @@
 using FishingNetMod.Data;
+using FishingNetMod.Items;
 using Xunit;
 
 namespace FishingNetMod.Tests.Data;
@@ -6,17 +7,18 @@ namespace FishingNetMod.Tests.Data;
 public sealed class NetLevelDataTests
 {
     [Theory]
-    [InlineData("copper", NetLevel.Copper, "Copper Fishing Net", 2, 3, 10)]
-    [InlineData("iron", NetLevel.Iron, "Iron Fishing Net", 3, 4, 8)]
-    [InlineData("gold", NetLevel.Gold, "Gold Fishing Net", 4, 5, 6)]
-    [InlineData("iridium", NetLevel.Iridium, "Iridium Fishing Net", 5, 7, 4)]
-    public void TryParseReturnsExpectedLevelData(string input, NetLevel expectedLevel, string expectedName, int expectedMin, int expectedMax, int expectedStamina)
+    [InlineData("copper", NetLevel.Copper, FishingNetIds.CopperNetItemId, "Copper Fishing Net", 2, 3, 10)]
+    [InlineData("iron", NetLevel.Iron, FishingNetIds.IronNetItemId, "Iron Fishing Net", 3, 4, 8)]
+    [InlineData("gold", NetLevel.Gold, FishingNetIds.GoldNetItemId, "Gold Fishing Net", 4, 5, 6)]
+    [InlineData("iridium", NetLevel.Iridium, FishingNetIds.IridiumNetItemId, "Iridium Fishing Net", 5, 7, 4)]
+    public void TryParseReturnsExpectedLevelData(string input, NetLevel expectedLevel, string expectedItemId, string expectedName, int expectedMin, int expectedMax, int expectedStamina)
     {
         bool parsed = NetLevelData.TryParse(input, out NetLevelData? data);
 
         Assert.True(parsed);
         Assert.NotNull(data);
         Assert.Equal(expectedLevel, data.Level);
+        Assert.Equal(expectedItemId, data.ItemId);
         Assert.Equal(expectedName, data.DisplayName);
         Assert.Equal(expectedMin, data.MinCatch);
         Assert.Equal(expectedMax, data.MaxCatch);
@@ -48,5 +50,29 @@ public sealed class NetLevelDataTests
         NetLevel[] levels = NetLevelData.All.Select(data => data.Level).ToArray();
 
         Assert.Equal(new[] { NetLevel.Copper, NetLevel.Iron, NetLevel.Gold, NetLevel.Iridium }, levels);
+    }
+
+    [Theory]
+    [InlineData(FishingNetIds.CopperNetItemId, NetLevel.Copper)]
+    [InlineData(FishingNetIds.IronNetItemId, NetLevel.Iron)]
+    [InlineData(FishingNetIds.GoldNetItemId, NetLevel.Gold)]
+    [InlineData(FishingNetIds.IridiumNetItemId, NetLevel.Iridium)]
+    public void TryParseItemIdReturnsExpectedLevel(string itemId, NetLevel expectedLevel)
+    {
+        bool parsed = NetLevelData.TryParseItemId(itemId, out NetLevelData? data);
+
+        Assert.True(parsed);
+        Assert.NotNull(data);
+        Assert.Equal(expectedLevel, data.Level);
+    }
+
+    [Fact]
+    public void TryParseItemIdAcceptsQualifiedObjectIds()
+    {
+        bool parsed = NetLevelData.TryParseItemId($"(O){FishingNetIds.GoldNetItemId}", out NetLevelData? data);
+
+        Assert.True(parsed);
+        Assert.NotNull(data);
+        Assert.Equal(NetLevel.Gold, data.Level);
     }
 }

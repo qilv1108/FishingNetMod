@@ -60,4 +60,28 @@ public sealed class PassiveNetManagerTests
         Assert.Equal(expectedMin, range.Min);
         Assert.Equal(expectedMax, range.Max);
     }
+
+    [Fact]
+    public void TryGetHarvestableNetFindsNetByLocationAndTile()
+    {
+        var manager = new PassiveNetManager();
+        var first = new PassiveNetData(1234L, "Beach", new Vector2(10, 20), NetLevel.Copper, new List<PassiveNetHarvestData>());
+        manager.TryAdd(first, out _);
+
+        bool found = manager.TryGetHarvestableNet("Beach", new Vector2(10, 20), out PassiveNetData? data);
+
+        Assert.True(found);
+        Assert.Same(first, data);
+    }
+
+    [Fact]
+    public void TryGetHarvestableNetRejectsMissingNet()
+    {
+        var manager = new PassiveNetManager();
+
+        bool found = manager.TryGetHarvestableNet("Beach", new Vector2(10, 20), out PassiveNetData? data);
+
+        Assert.False(found);
+        Assert.Null(data);
+    }
 }

@@ -30,4 +30,14 @@ public sealed class FishingNetItemFactoryTests
         Assert.False(found);
         Assert.Null(data);
     }
+
+    [Fact]
+    public void TryGetNetDataQualifiedItemIdRecognizesContentPatcherObjects()
+    {
+        bool found = FishingNetItemFactory.TryGetNetDataQualifiedItemId($"(O){FishingNetIds.IridiumNetItemId}", out NetLevelData? data);
+
+        Assert.True(found);
+        Assert.NotNull(data);
+        Assert.Equal(NetLevel.Iridium, data.Level);
+    }
 }

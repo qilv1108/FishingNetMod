@@ -1,5 +1,6 @@
 using FishingNetMod.Data;
 using FishingNetMod.Items;
+using FishingNetMod.Quests;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -11,12 +12,14 @@ internal sealed class ActiveFishingNet
     private readonly IMonitor monitor;
     private readonly FishingNetItemFactory itemFactory;
     private readonly IFishProvider fishProvider;
+    private readonly QuestProgressTracker? questProgressTracker;
 
-    public ActiveFishingNet(IMonitor monitor, FishingNetItemFactory itemFactory, IFishProvider fishProvider)
+    public ActiveFishingNet(IMonitor monitor, FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null)
     {
         this.monitor = monitor;
         this.itemFactory = itemFactory;
         this.fishProvider = fishProvider;
+        this.questProgressTracker = questProgressTracker;
     }
 
     public bool TryUse(Farmer player, GameLocation location)
@@ -41,6 +44,7 @@ internal sealed class ActiveFishingNet
                 continue;
 
             this.GiveOrDrop(player, location, caught);
+            this.questProgressTracker?.RecordNetCatch(netData.Level, caught.Quality, Game1.currentSeason);
             caughtCount++;
         }
 

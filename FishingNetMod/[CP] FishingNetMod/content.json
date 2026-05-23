@@ -1,0 +1,79 @@
+{
+  "Format": "2.0.0",
+  "Changes": [
+    {
+      "Action": "Load",
+      "Target": "Mods/ChenJianCan.FishingNetMod/FishingNet",
+      "FromFile": "assets/fishing_net.png"
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Objects",
+      "Entries": {
+        "ChenJianCan.FishingNetMod_CopperNet": {
+          "Name": "Copper Fishing Net",
+          "DisplayName": "{{i18n:item.copper.name}}",
+          "Description": "{{i18n:item.copper.description}}",
+          "Type": "Crafting",
+          "Category": -9,
+          "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
+          "SpriteIndex": 0
+        },
+        "ChenJianCan.FishingNetMod_IronNet": {
+          "Name": "Iron Fishing Net",
+          "DisplayName": "{{i18n:item.iron.name}}",
+          "Description": "{{i18n:item.iron.description}}",
+          "Type": "Crafting",
+          "Category": -9,
+          "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
+          "SpriteIndex": 1
+        },
+        "ChenJianCan.FishingNetMod_GoldNet": {
+          "Name": "Gold Fishing Net",
+          "DisplayName": "{{i18n:item.gold.name}}",
+          "Description": "{{i18n:item.gold.description}}",
+          "Type": "Crafting",
+          "Category": -9,
+          "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
+          "SpriteIndex": 2
+        },
+        "ChenJianCan.FishingNetMod_IridiumNet": {
+          "Name": "Iridium Fishing Net",
+          "DisplayName": "{{i18n:item.iridium.name}}",
+          "Description": "{{i18n:item.iridium.description}}",
+          "Type": "Crafting",
+          "Category": -9,
+          "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
+          "SpriteIndex": 3
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/CraftingRecipes",
+      "Entries": {
+        "FishingNet_Copper": "334 5 388 50 771 20/Home/ChenJianCan.FishingNetMod_CopperNet/true/default/",
+        "FishingNet_Iron": "335 5 388 40 771 15 ChenJianCan.FishingNetMod_CopperNet 1/Home/ChenJianCan.FishingNetMod_IronNet/true/default/",
+        "FishingNet_Gold": "336 5 388 30 771 10 ChenJianCan.FishingNetMod_IronNet 1/Home/ChenJianCan.FishingNetMod_GoldNet/true/default/",
+        "FishingNet_Iridium": "337 5 388 20 771 5 ChenJianCan.FishingNetMod_GoldNet 1/Home/ChenJianCan.FishingNetMod_IridiumNet/true/default/"
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Mail",
+      "Entries": {
+        "FishingNet_WillyRequest": "{{i18n:mail.copper}}",
+        "FishingNet_IronRequest": "{{i18n:mail.iron}}",
+        "FishingNet_GoldRequest": "{{i18n:mail.gold}}",
+        "FishingNet_IridiumRequest": "{{i18n:mail.iridium}}"
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Characters/Dialogue/Willy",
+      "Entries": {
+        "FishingNetIntro": "{{i18n:dialogue.willy.intro}}"
+      }
+    }
+  ]
+}
