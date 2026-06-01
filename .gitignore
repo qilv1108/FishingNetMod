@@ -16,6 +16,9 @@ obj/
 
 # Claude/local automation
 .claude/
+.bun-ascii/
+.gstack-install/
+.tmp-bun/
 
 # Logs/temp
 *.log
