@@ -90,8 +90,21 @@ internal sealed class ModEntry : Mod
 
         if (e.Button.IsUseToolButton())
         {
-            if (this.activeFishingNet!.TryUse(Game1.player, Game1.currentLocation))
+            GameLocation fishingLocation = Game1.currentLocation;
+            if (this.activeFishingNet!.TryUse(Game1.player, fishingLocation, out ActiveFishingNetCast? cast))
+            {
                 this.Helper.Input.Suppress(e.Button);
+                if (cast is not null)
+                {
+                    Game1.activeClickableMenu = new NetHarvestChallengeMenu(
+                        onSuccess: () => this.CompleteActiveFishing(Game1.player, fishingLocation, cast),
+                        onFailure: () => Game1.showRedMessage("捕鱼失败。"),
+                        targetNumbers: CreateActiveFishingChallengeDigits(),
+                        title: "捕鱼挑战",
+                        instruction: "按顺序输入显示的数字，在 30 秒内完成。");
+                }
+            }
+
             return;
         }
 
@@ -134,6 +147,20 @@ internal sealed class ModEntry : Mod
 
         if (harvestError is not null)
             Game1.showRedMessage(harvestError);
+    }
+
+    private void CompleteActiveFishing(Farmer player, GameLocation location, ActiveFishingNetCast cast)
+    {
+        this.activeFishingNet!.CompleteCatch(player, location, cast);
+    }
+
+    private static IReadOnlyList<int> CreateActiveFishingChallengeDigits()
+    {
+        var digits = new int[5];
+        for (int index = 0; index < digits.Length; index++)
+            digits[index] = Game1.random.Next(0, 10);
+
+        return digits;
     }
 
     private Vector2 GetFacingTile(Farmer player)

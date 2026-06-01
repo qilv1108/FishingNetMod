@@ -1,4 +1,6 @@
 using FishingNetMod.Data;
+using FishingNetMod.Mechanics;
+using StardewValley;
 using Xunit;
 
 namespace FishingNetMod.Tests.Mechanics;
@@ -16,5 +18,18 @@ public sealed class ActiveFishingNetTests
 
         Assert.Equal(expectedMin, data.MinCatch);
         Assert.Equal(expectedMax, data.MaxCatch);
+    }
+
+    [Fact]
+    public void ActiveFishingNetExposesPrepareAndCompleteFlow()
+    {
+        Type type = typeof(ActiveFishingNet);
+
+        Assert.NotNull(type.GetMethod(
+            "TryUse",
+            new[] { typeof(Farmer), typeof(GameLocation), typeof(ActiveFishingNetCast).MakeByRefType() }));
+        Assert.NotNull(type.GetMethod(
+            "CompleteCatch",
+            new[] { typeof(Farmer), typeof(GameLocation), typeof(ActiveFishingNetCast) }));
     }
 }

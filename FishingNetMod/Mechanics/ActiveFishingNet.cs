@@ -22,8 +22,10 @@ internal sealed class ActiveFishingNet
         this.questProgressTracker = questProgressTracker;
     }
 
-    public bool TryUse(Farmer player, GameLocation location)
+    public bool TryUse(Farmer player, GameLocation location, out ActiveFishingNetCast? cast)
     {
+        cast = null;
+
         if (!this.itemFactory.TryGetNetData(player.CurrentItem, out NetLevelData? data) || data is null)
             return false;
 
@@ -36,23 +38,33 @@ internal sealed class ActiveFishingNet
 
         NetLevelData netData = data;
         int attempts = Game1.random.Next(netData.MinCatch, netData.MaxCatch + 1);
-        int caughtCount = 0;
+        var caughtItems = new List<Item>();
         for (int i = 0; i < attempts; i++)
         {
             Item? caught = this.fishProvider.GetFish(location, player, targetTile);
             if (caught is null)
                 continue;
 
-            this.GiveOrDrop(player, location, caught);
-            this.questProgressTracker?.RecordNetCatch(netData.Level, caught.Quality, Game1.currentSeason);
-            caughtCount++;
+            caughtItems.Add(caught);
         }
 
         player.Stamina = Math.Max(0, player.Stamina - netData.StaminaCost);
         location.playSound("waterSlosh");
-        Game1.addHUDMessage(new HUDMessage(caughtCount > 0 ? $"捕获了 {caughtCount} 条鱼！" : "没有捕到鱼。", HUDMessage.newQuest_type));
-        this.monitor.Log($"{player.Name} used {netData.DisplayName} and caught {caughtCount} fish from {attempts} attempt(s).", LogLevel.Trace);
+        cast = new ActiveFishingNetCast(netData, caughtItems, attempts);
+        this.monitor.Log($"{player.Name} cast {netData.DisplayName} and started a challenge with {caughtItems.Count} pending fish from {attempts} attempt(s).", LogLevel.Trace);
         return true;
+    }
+
+    public void CompleteCatch(Farmer player, GameLocation location, ActiveFishingNetCast cast)
+    {
+        foreach (Item caught in cast.CaughtItems)
+        {
+            this.GiveOrDrop(player, location, caught);
+            this.questProgressTracker?.RecordNetCatch(cast.NetData.Level, caught.Quality, Game1.currentSeason);
+        }
+
+        Game1.addHUDMessage(new HUDMessage(cast.GetResultMessage(), HUDMessage.newQuest_type));
+        this.monitor.Log($"{player.Name} completed {cast.NetData.DisplayName} challenge and received {cast.CaughtCount} fish from {cast.Attempts} attempt(s).", LogLevel.Trace);
     }
 
     private Vector2 GetFacingTile(Farmer player)

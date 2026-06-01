@@ -17,15 +17,28 @@ internal sealed class NetHarvestChallengeMenu : IClickableMenu
     private readonly NetHarvestChallenge challenge;
     private readonly Action onSuccess;
     private readonly Action onFailure;
+    private readonly string title;
+    private readonly string instruction;
     private readonly List<Rectangle> buttonBounds = new();
     private readonly Rectangle panelBounds;
     private bool resolved;
 
-    public NetHarvestChallengeMenu(Action onSuccess, Action onFailure, int targetCount = 5, TimeSpan? duration = null)
+    public NetHarvestChallengeMenu(
+        Action onSuccess,
+        Action onFailure,
+        int targetCount = 5,
+        TimeSpan? duration = null,
+        IReadOnlyList<int>? targetNumbers = null,
+        string title = "收网挑战",
+        string? instruction = null)
     {
         this.onSuccess = onSuccess;
         this.onFailure = onFailure;
-        this.challenge = new NetHarvestChallenge(targetCount, duration);
+        this.challenge = targetNumbers is null
+            ? new NetHarvestChallenge(targetCount, duration)
+            : new NetHarvestChallenge(targetNumbers, duration);
+        this.title = title;
+        this.instruction = instruction ?? $"按顺序点击 1 到 {this.challenge.TargetCount}，在 30 秒内完成。";
 
         this.width = PanelWidth;
         this.height = PanelHeight;
@@ -58,7 +71,7 @@ internal sealed class NetHarvestChallengeMenu : IClickableMenu
             if (!this.buttonBounds[index].Contains(x, y))
                 continue;
 
-            if (this.challenge.Click(index + 1))
+            if (this.challenge.Click(this.challenge.TargetNumbers[index]))
             {
                 Game1.playSound("coin");
                 if (this.challenge.Status == NetHarvestChallengeStatus.Completed)
@@ -78,11 +91,45 @@ internal sealed class NetHarvestChallengeMenu : IClickableMenu
         if (key == Keys.Escape)
         {
             Game1.playSound("cancel");
-            this.exitThisMenu();
+            this.ResolveFailure();
+            return;
+        }
+
+        if (TryGetDigit(key, out int digit))
+        {
+            if (this.challenge.Click(digit))
+            {
+                Game1.playSound("coin");
+                if (this.challenge.Status == NetHarvestChallengeStatus.Completed)
+                    this.ResolveSuccess();
+            }
+            else
+            {
+                Game1.playSound("cancel");
+            }
+
             return;
         }
 
         base.receiveKeyPress(key);
+    }
+
+    internal static bool TryGetDigit(Keys key, out int digit)
+    {
+        if (key >= Keys.D0 && key <= Keys.D9)
+        {
+            digit = key - Keys.D0;
+            return true;
+        }
+
+        if (key >= Keys.NumPad0 && key <= Keys.NumPad9)
+        {
+            digit = key - Keys.NumPad0;
+            return true;
+        }
+
+        digit = -1;
+        return false;
     }
 
     public override void draw(SpriteBatch b)
@@ -131,14 +178,12 @@ internal sealed class NetHarvestChallengeMenu : IClickableMenu
 
     private void DrawHeader(SpriteBatch b)
     {
-        string title = "收网挑战";
-        Vector2 titleSize = Game1.dialogueFont.MeasureString(title);
+        Vector2 titleSize = Game1.dialogueFont.MeasureString(this.title);
         Vector2 titlePos = new(this.panelBounds.Center.X - titleSize.X / 2f, this.panelBounds.Y + 20);
-        b.DrawString(Game1.dialogueFont, title, titlePos, Color.White);
+        b.DrawString(Game1.dialogueFont, this.title, titlePos, Color.White);
 
-        string instruction = $"按顺序点击 1 到 {this.challenge.TargetCount}，在 30 秒内完成。";
         Vector2 instructionPos = new(this.panelBounds.X + 28, this.panelBounds.Y + 86);
-        b.DrawString(Game1.smallFont, instruction, instructionPos, Color.White);
+        b.DrawString(Game1.smallFont, this.instruction, instructionPos, Color.White);
 
         string timer = $"剩余时间: {Math.Max(0f, (float)this.challenge.TimeRemaining.TotalSeconds):0.0}s";
         Vector2 timerSize = Game1.smallFont.MeasureString(timer);
@@ -154,7 +199,7 @@ internal sealed class NetHarvestChallengeMenu : IClickableMenu
             Color fill = this.GetButtonFillColor(index);
             this.DrawBox(b, bounds, fill, Color.Black);
 
-            string label = (index + 1).ToString();
+            string label = this.challenge.TargetNumbers[index].ToString();
             Vector2 labelSize = Game1.smallFont.MeasureString(label);
             Vector2 labelPos = new(bounds.Center.X - labelSize.X / 2f, bounds.Center.Y - labelSize.Y / 2f - 2f);
             b.DrawString(Game1.smallFont, label, labelPos, Color.White);
@@ -166,10 +211,10 @@ internal sealed class NetHarvestChallengeMenu : IClickableMenu
         if (this.challenge.Status == NetHarvestChallengeStatus.Completed)
             return new Color(72, 160, 92);
 
-        if (index + 1 < this.challenge.NextTarget)
+        if (index < this.challenge.NextTarget - 1)
             return new Color(72, 124, 88);
 
-        if (index + 1 == this.challenge.NextTarget)
+        if (index == this.challenge.NextTarget - 1)
             return new Color(194, 148, 60);
 
         return new Color(78, 82, 94);
