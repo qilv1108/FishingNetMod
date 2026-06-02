@@ -99,13 +99,23 @@ internal sealed class QuestProgressTracker
         List<string> recipesToUnlock,
         List<string> mailToQueue)
     {
-        if (player.KnownRecipes.Contains(FishingNetIds.CopperNetRecipe))
-            return;
-
         if (player.FishingLevel < FishingLevelRequiredForCopperQuest)
             return;
 
         IReadOnlySet<string> receivedMailFlags = player.ReceivedMailFlags ?? player.KnownMailFlags;
+
+        if (player.KnownRecipes.Contains(FishingNetIds.CopperNetRecipe))
+        {
+            if (player.KnownMailFlags.Contains(FishingNetIds.CopperQuestMailId))
+                this.Progress.CopperQuestMailQueued = true;
+            else
+            {
+                mailToQueue.Add(FishingNetIds.CopperQuestMailId);
+                this.Progress.CopperQuestMailQueued = true;
+            }
+
+            return;
+        }
 
         if (receivedMailFlags.Contains(FishingNetIds.CopperQuestMailId))
         {
