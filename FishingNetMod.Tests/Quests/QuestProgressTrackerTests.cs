@@ -60,11 +60,11 @@ public sealed class QuestProgressTrackerTests
     }
 
     [Fact]
-    public void EvaluateUnlocksQueuesCopperQuestMailBeforeUnlockingCopperRecipe()
+    public void EvaluateUnlocksQueuesCopperQuestMailForTomorrowAtFishingLevelOneBeforeUnlockingCopperRecipe()
     {
         var tracker = new QuestProgressTracker();
         var snapshot = new QuestPlayerSnapshot(
-            FishingLevel: 4,
+            FishingLevel: 1,
             KnownRecipes: new HashSet<string>(),
             KnownMailFlags: new HashSet<string>(),
             ReceivedMailFlags: new HashSet<string>());
@@ -77,12 +77,12 @@ public sealed class QuestProgressTrackerTests
     }
 
     [Fact]
-    public void EvaluateUnlocksUnlocksCopperRecipeAfterMailArrives()
+    public void EvaluateUnlocksUnlocksCopperRecipeAfterMailArrivesAtFishingLevelOne()
     {
         var tracker = new QuestProgressTracker();
         tracker.Progress.CopperQuestMailQueued = true;
         var snapshot = new QuestPlayerSnapshot(
-            FishingLevel: 4,
+            FishingLevel: 1,
             KnownRecipes: new HashSet<string>(),
             KnownMailFlags: new HashSet<string> { FishingNetIds.CopperQuestMailId },
             ReceivedMailFlags: new HashSet<string> { FishingNetIds.CopperQuestMailId });
@@ -94,20 +94,49 @@ public sealed class QuestProgressTrackerTests
     }
 
     [Fact]
-    public void EvaluateUnlocksDoesNotStartCopperQuestAtFishingLevelThree()
+    public void CopperQuestFishingLevelRequirementIsOne()
+    {
+        Assert.Equal(1, QuestProgressTracker.FishingLevelRequiredForCopperQuest);
+    }
+
+    [Fact]
+    public void QuestUnlockPlanDoesNotExposeImmediateMailDelivery()
+    {
+        Assert.Null(typeof(QuestUnlockPlan).GetProperty("MailToDeliverNow"));
+    }
+
+    [Fact]
+    public void EvaluateUnlocksDoesNotStartCopperQuestAtFishingLevelZero()
     {
         var tracker = new QuestProgressTracker();
         var snapshot = new QuestPlayerSnapshot(
-            FishingLevel: 3,
+            FishingLevel: 0,
             KnownRecipes: new HashSet<string>(),
             KnownMailFlags: new HashSet<string>(),
             ReceivedMailFlags: new HashSet<string>());
 
         QuestUnlockPlan plan = tracker.EvaluateUnlocks(snapshot);
 
-        Assert.Empty(plan.RecipesToUnlock);
         Assert.Empty(plan.MailToQueue);
+        Assert.Empty(plan.RecipesToUnlock);
         Assert.False(tracker.Progress.CopperQuestMailQueued);
+    }
+
+    [Fact]
+    public void EvaluateUnlocksRequeuesCopperQuestMailIfQueuedFlagExistsButMailIsMissing()
+    {
+        var tracker = new QuestProgressTracker();
+        tracker.Progress.CopperQuestMailQueued = true;
+        var snapshot = new QuestPlayerSnapshot(
+            FishingLevel: 1,
+            KnownRecipes: new HashSet<string>(),
+            KnownMailFlags: new HashSet<string>(),
+            ReceivedMailFlags: new HashSet<string>());
+
+        QuestUnlockPlan plan = tracker.EvaluateUnlocks(snapshot);
+
+        Assert.Equal(new[] { FishingNetIds.CopperQuestMailId }, plan.MailToQueue);
+        Assert.Empty(plan.RecipesToUnlock);
     }
 
     [Fact]
@@ -117,7 +146,7 @@ public sealed class QuestProgressTrackerTests
         tracker.Progress.SilverFishCount = QuestProgressTracker.SilverFishRequiredForIronNet;
         var snapshot = new QuestPlayerSnapshot(
             FishingLevel: 0,
-            KnownRecipes: new HashSet<string>(),
+            KnownRecipes: new HashSet<string> { FishingNetIds.CopperNetRecipe },
             KnownMailFlags: new HashSet<string>());
 
         QuestUnlockPlan plan = tracker.EvaluateUnlocks(snapshot);
@@ -133,7 +162,7 @@ public sealed class QuestProgressTrackerTests
         tracker.Progress.GoldFishCount = QuestProgressTracker.GoldFishRequiredForGoldNet;
         var snapshot = new QuestPlayerSnapshot(
             FishingLevel: 0,
-            KnownRecipes: new HashSet<string>(),
+            KnownRecipes: new HashSet<string> { FishingNetIds.CopperNetRecipe, FishingNetIds.IronNetRecipe },
             KnownMailFlags: new HashSet<string>());
 
         QuestUnlockPlan plan = tracker.EvaluateUnlocks(snapshot);
@@ -149,7 +178,12 @@ public sealed class QuestProgressTrackerTests
         tracker.Progress.SeasonsFished.UnionWith(new[] { "spring", "summer", "fall", "winter" });
         var snapshot = new QuestPlayerSnapshot(
             FishingLevel: 0,
-            KnownRecipes: new HashSet<string>(),
+            KnownRecipes: new HashSet<string>
+            {
+                FishingNetIds.CopperNetRecipe,
+                FishingNetIds.IronNetRecipe,
+                FishingNetIds.GoldNetRecipe
+            },
             KnownMailFlags: new HashSet<string>());
 
         QuestUnlockPlan plan = tracker.EvaluateUnlocks(snapshot);

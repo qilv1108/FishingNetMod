@@ -8,7 +8,7 @@ internal sealed class QuestProgressTracker
 {
     public const int SilverFishRequiredForIronNet = 10;
     public const int GoldFishRequiredForGoldNet = 10;
-    public const int FishingLevelRequiredForCopperQuest = 4;
+    public const int FishingLevelRequiredForCopperQuest = 1;
 
     private const string SaveDataKey = "QuestProgress";
     private const int SilverQuality = 1;
@@ -104,7 +104,7 @@ internal sealed class QuestProgressTracker
             return;
         }
 
-        if (this.Progress.CopperQuestMailQueued)
+        if (this.Progress.CopperQuestMailQueued && player.KnownMailFlags.Contains(FishingNetIds.CopperQuestMailId))
             return;
 
         mailToQueue.Add(FishingNetIds.CopperQuestMailId);
