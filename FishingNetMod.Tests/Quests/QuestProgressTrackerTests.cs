@@ -140,6 +140,24 @@ public sealed class QuestProgressTrackerTests
     }
 
     [Fact]
+    public void EvaluateCopperUnlocksSkipsLaterTierMilestones()
+    {
+        var tracker = new QuestProgressTracker();
+        tracker.Progress.SilverFishCount = QuestProgressTracker.SilverFishRequiredForIronNet;
+        tracker.Progress.GoldFishCount = QuestProgressTracker.GoldFishRequiredForGoldNet;
+        tracker.Progress.SeasonsFished.UnionWith(new[] { "spring", "summer", "fall", "winter" });
+        var snapshot = new QuestPlayerSnapshot(
+            FishingLevel: 1,
+            KnownRecipes: new HashSet<string> { FishingNetIds.CopperNetRecipe },
+            KnownMailFlags: new HashSet<string>());
+
+        QuestUnlockPlan plan = tracker.EvaluateCopperUnlocks(snapshot);
+
+        Assert.Empty(plan.MailToQueue);
+        Assert.Empty(plan.RecipesToUnlock);
+    }
+
+    [Fact]
     public void EvaluateUnlocksUnlocksIronRecipeAfterTenCopperSilverFish()
     {
         var tracker = new QuestProgressTracker();

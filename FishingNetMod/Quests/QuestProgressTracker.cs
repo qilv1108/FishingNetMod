@@ -84,6 +84,16 @@ internal sealed class QuestProgressTracker
         return new QuestUnlockPlan(recipesToUnlock, mailToQueue);
     }
 
+    public QuestUnlockPlan EvaluateCopperUnlocks(QuestPlayerSnapshot player)
+    {
+        var recipesToUnlock = new List<string>();
+        var mailToQueue = new List<string>();
+
+        AddCopperUnlockIfNeeded(player, recipesToUnlock, mailToQueue);
+
+        return new QuestUnlockPlan(recipesToUnlock, mailToQueue);
+    }
+
     private void AddCopperUnlockIfNeeded(
         QuestPlayerSnapshot player,
         List<string> recipesToUnlock,

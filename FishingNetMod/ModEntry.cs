@@ -195,7 +195,7 @@ internal sealed class ModEntry : Mod
         foreach (GameLocation location in Game1.locations)
             this.passiveNetManager!.ProduceDaily(location);
 
-        this.ApplyQuestUnlocks(Game1.player);
+        this.ApplyCopperQuestUnlocks(Game1.player);
     }
 
     private void OnDayEnding(object? sender, DayEndingEventArgs e)
@@ -208,7 +208,7 @@ internal sealed class ModEntry : Mod
         if (!Context.IsWorldReady || !e.IsMultipleOf(60))
             return;
 
-        this.ApplyQuestUnlocks(Game1.player);
+        this.ApplyCopperQuestUnlocks(Game1.player);
     }
 
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
@@ -219,6 +219,17 @@ internal sealed class ModEntry : Mod
     private void ApplyQuestUnlocks(Farmer player)
     {
         QuestUnlockPlan plan = this.questProgressTracker!.EvaluateUnlocks(QuestPlayerSnapshot.FromFarmer(player));
+        this.ApplyQuestUnlockPlan(player, plan);
+    }
+
+    private void ApplyCopperQuestUnlocks(Farmer player)
+    {
+        QuestUnlockPlan plan = this.questProgressTracker!.EvaluateCopperUnlocks(QuestPlayerSnapshot.FromFarmer(player));
+        this.ApplyQuestUnlockPlan(player, plan);
+    }
+
+    private void ApplyQuestUnlockPlan(Farmer player, QuestUnlockPlan plan)
+    {
         if (!plan.HasChanges)
             return;
 
