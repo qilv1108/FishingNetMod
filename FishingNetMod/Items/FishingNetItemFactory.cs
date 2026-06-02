@@ -8,12 +8,24 @@ public sealed class FishingNetItemFactory
 {
     public const string NetLevelModDataKey = "ChenJianCan.FishingNetMod/NetLevel";
 
+    private readonly Func<string, int, Item> createItem;
+
+    public FishingNetItemFactory()
+        : this((qualifiedItemId, stack) => ItemRegistry.Create(qualifiedItemId, stack))
+    {
+    }
+
+    internal FishingNetItemFactory(Func<string, int, Item> createItem)
+    {
+        this.createItem = createItem;
+    }
+
     public Item Create(NetLevelData data)
     {
         Item item;
         try
         {
-            item = new SObject(data.ItemId, 1);
+            item = this.createItem($"(O){data.ItemId}", 1);
         }
         catch
         {

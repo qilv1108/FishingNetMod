@@ -52,10 +52,10 @@
       "Action": "EditData",
       "Target": "Data/CraftingRecipes",
       "Entries": {
-        "FishingNet_Copper": "334 5 388 50 771 20/Home/ChenJianCan.FishingNetMod_CopperNet/true/default/",
-        "FishingNet_Iron": "335 5 388 40 771 15 ChenJianCan.FishingNetMod_CopperNet 1/Home/ChenJianCan.FishingNetMod_IronNet/true/default/",
-        "FishingNet_Gold": "336 5 388 30 771 10 ChenJianCan.FishingNetMod_IronNet 1/Home/ChenJianCan.FishingNetMod_GoldNet/true/default/",
-        "FishingNet_Iridium": "337 5 388 20 771 5 ChenJianCan.FishingNetMod_GoldNet 1/Home/ChenJianCan.FishingNetMod_IridiumNet/true/default/"
+        "FishingNet_Copper": "334 5 388 50 771 20/Home/(O)ChenJianCan.FishingNetMod_CopperNet/true/default/",
+        "FishingNet_Iron": "335 5 388 40 771 15 (O)ChenJianCan.FishingNetMod_CopperNet 1/Home/(O)ChenJianCan.FishingNetMod_IronNet/true/default/",
+        "FishingNet_Gold": "336 5 388 30 771 10 (O)ChenJianCan.FishingNetMod_IronNet 1/Home/(O)ChenJianCan.FishingNetMod_GoldNet/true/default/",
+        "FishingNet_Iridium": "337 5 388 20 771 5 (O)ChenJianCan.FishingNetMod_GoldNet 1/Home/(O)ChenJianCan.FishingNetMod_IridiumNet/true/default/"
       }
     },
     {

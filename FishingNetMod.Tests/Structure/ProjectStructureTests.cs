@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Text.Json;
 using System.Xml.Linq;
 using Xunit;
 
@@ -70,6 +71,33 @@ public sealed class ProjectStructureTests
         Assert.True(hasBuildConfig, "The test project should use the SMAPI build package instead of hard-coded local game DLL paths.");
     }
 
+    [Fact]
+    public void CraftingRecipesQualifyCustomFishingNetObjectIds()
+    {
+        string contentPath = FindRepoFile("FishingNetMod", "[CP] FishingNetMod", "content.json");
+        using JsonDocument content = JsonDocument.Parse(File.ReadAllText(contentPath));
+        JsonElement recipes = content.RootElement
+            .GetProperty("Changes")
+            .EnumerateArray()
+            .Single(change =>
+                string.Equals(change.GetProperty("Action").GetString(), "EditData", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(change.GetProperty("Target").GetString(), "Data/CraftingRecipes", StringComparison.OrdinalIgnoreCase))
+            .GetProperty("Entries");
+
+        foreach (JsonProperty recipe in recipes.EnumerateObject())
+        {
+            string recipeData = recipe.Value.GetString() ?? string.Empty;
+            string[] fields = recipeData.Split('/');
+            Assert.True(fields.Length >= 3, $"Recipe {recipe.Name} should have a crafting output field.");
+
+            string[] ingredients = fields[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < ingredients.Length; i += 2)
+                AssertCustomFishingNetObjectIdIsQualified(recipe.Name, "ingredient", ingredients[i]);
+
+            AssertCustomFishingNetObjectIdIsQualified(recipe.Name, "output", fields[2]);
+        }
+    }
+
     private static string FindRepoFile(params string[] relativePathParts)
     {
         string root = FindRepoRoot();
@@ -100,5 +128,17 @@ public sealed class ProjectStructureTests
     private static string NormalizePath(string path)
     {
         return path.Replace('\\', '/').TrimEnd('/');
+    }
+
+    private static void AssertCustomFishingNetObjectIdIsQualified(string recipeName, string fieldName, string itemId)
+    {
+        string unqualifiedId = itemId.StartsWith("(O)", StringComparison.OrdinalIgnoreCase)
+            ? itemId[3..]
+            : itemId;
+
+        if (!unqualifiedId.StartsWith("ChenJianCan.FishingNetMod_", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Assert.StartsWith("(O)", itemId, StringComparison.OrdinalIgnoreCase);
     }
 }
