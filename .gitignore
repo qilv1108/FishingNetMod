@@ -19,6 +19,7 @@ obj/
 .bun-ascii/
 .gstack-install/
 .tmp-bun/
+.worktrees/
 
 # Logs/temp
 *.log
