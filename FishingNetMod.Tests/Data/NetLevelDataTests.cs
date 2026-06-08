@@ -8,7 +8,7 @@ public sealed class NetLevelDataTests
 {
     [Theory]
     [InlineData("copper", NetLevel.Copper, FishingNetIds.CopperNetItemId, "Copper Fishing Net", 2, 3, 10)]
-    [InlineData("iron", NetLevel.Iron, FishingNetIds.IronNetItemId, "Iron Fishing Net", 3, 4, 8)]
+    [InlineData("iron", NetLevel.Iron, FishingNetIds.IronNetItemId, "Silver Fishing Net", 3, 4, 8)]
     [InlineData("gold", NetLevel.Gold, FishingNetIds.GoldNetItemId, "Gold Fishing Net", 4, 5, 6)]
     [InlineData("iridium", NetLevel.Iridium, FishingNetIds.IridiumNetItemId, "Iridium Fishing Net", 5, 7, 4)]
     public void TryParseReturnsExpectedLevelData(string input, NetLevel expectedLevel, string expectedItemId, string expectedName, int expectedMin, int expectedMax, int expectedStamina)
