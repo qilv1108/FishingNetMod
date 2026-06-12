@@ -16,6 +16,13 @@ public sealed class ActiveFishingNetCastTests
         Assert.Equal("没有捕到鱼。", cast.GetResultMessage());
     }
 
+    [Fact(Skip = "Requires mock framework for ActiveFishingNet construction")]
+    public void TryUse_BlocksWhenPassiveNetAtTile()
+    {
+        // This test requires a full ActiveFishingNet instance which needs IMonitor,
+        // FishingNetItemFactory, and IFishProvider mocks. Skipped for now.
+    }
+
     [Fact]
     public void CastStoresNetDataCaughtItemsAndAttempts()
     {

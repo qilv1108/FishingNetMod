@@ -22,7 +22,8 @@ internal sealed class ActiveFishingNet
         this.questProgressTracker = questProgressTracker;
     }
 
-    public bool TryUse(Farmer player, GameLocation location, out ActiveFishingNetCast? cast)
+    public bool TryUse(Farmer player, GameLocation location,
+        out ActiveFishingNetCast? cast, PassiveNetManager? passiveNetManager = null)
     {
         cast = null;
 
@@ -33,6 +34,13 @@ internal sealed class ActiveFishingNet
         if (!location.isWaterTile((int)targetTile.X, (int)targetTile.Y))
         {
             Game1.showRedMessage("这里不能撒网。");
+            return true;
+        }
+
+        if (passiveNetManager?.TryGetHarvestableNet(location.Name, targetTile, out _) == true)
+        {
+            Game1.showRedMessage("这里已经有渔网了。");
+            cast = null;
             return true;
         }
 
@@ -60,7 +68,7 @@ internal sealed class ActiveFishingNet
         foreach (Item caught in cast.CaughtItems)
         {
             this.GiveOrDrop(player, location, caught);
-            this.questProgressTracker?.RecordNetCatch(cast.NetData.Level, caught.Quality, Game1.currentSeason);
+            this.questProgressTracker?.RecordNetCatch(player.UniqueMultiplayerID, cast.NetData.Level, caught.Quality, Game1.currentSeason);
         }
 
         Game1.addHUDMessage(new HUDMessage(cast.GetResultMessage(), HUDMessage.newQuest_type));
