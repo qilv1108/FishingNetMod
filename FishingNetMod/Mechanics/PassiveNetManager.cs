@@ -73,6 +73,12 @@ internal sealed class PassiveNetManager
             return false;
         }
 
+        if (data.OwnerId != player.UniqueMultiplayerID)
+        {
+            error = "这不是你的渔网。";
+            return false;
+        }
+
         foreach (PassiveNetHarvestData harvest in data.Harvest)
         {
             Item item = ItemRegistry.Create(harvest.QualifiedItemId, harvest.Stack);

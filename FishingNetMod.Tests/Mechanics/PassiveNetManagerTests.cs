@@ -1,6 +1,9 @@
+using System.Reflection;
+using System.Runtime.Serialization;
 using FishingNetMod.Data;
 using FishingNetMod.Mechanics;
 using Microsoft.Xna.Framework;
+using StardewValley;
 using Xunit;
 
 namespace FishingNetMod.Tests.Mechanics;
@@ -83,5 +86,85 @@ public sealed class PassiveNetManagerTests
 
         Assert.False(found);
         Assert.Null(data);
+    }
+
+    [Fact]
+    public void TryHarvest_RejectsNonOwner()
+    {
+        var manager = new PassiveNetManager();
+        var net = new PassiveNetData(
+            OwnerId: 1234L,
+            LocationName: "Beach",
+            Tile: new Vector2(10, 20),
+            Level: NetLevel.Copper,
+            Harvest: new List<PassiveNetHarvestData>
+            {
+                new("(O)128", 1, 0)
+            });
+        manager.TryAdd(net, out _);
+
+        // 使用 FormatterServices 绕过 Farmer/GameLocation 构造函数，用反射设置底层字段
+        var otherPlayer = (Farmer)FormatterServices.GetUninitializedObject(typeof(Farmer));
+        SetUniqueMultiplayerID(otherPlayer, 9999L);
+        var location = (GameLocation)FormatterServices.GetUninitializedObject(typeof(GameLocation));
+        SetLocationName(location, "Beach");
+
+        bool result = manager.TryHarvest(otherPlayer, location, new Vector2(10, 20), out string? error);
+
+        Assert.False(result);
+        Assert.Equal("这不是你的渔网。", error);
+        Assert.Single(manager.Nets);
+    }
+
+    [Fact(Skip = "Requires game initialization")]
+    public void TryHarvest_AllowsOwner()
+    {
+        var manager = new PassiveNetManager();
+        var net = new PassiveNetData(
+            OwnerId: 1234L,
+            LocationName: "Beach",
+            Tile: new Vector2(10, 20),
+            Level: NetLevel.Copper,
+            Harvest: new List<PassiveNetHarvestData>
+            {
+                new("(O)128", 1, 0)
+            });
+        manager.TryAdd(net, out _);
+
+        var owner = (Farmer)FormatterServices.GetUninitializedObject(typeof(Farmer));
+        SetUniqueMultiplayerID(owner, 1234L);
+        var location = (GameLocation)FormatterServices.GetUninitializedObject(typeof(GameLocation));
+        SetLocationName(location, "Beach");
+
+        bool result = manager.TryHarvest(owner, location, new Vector2(10, 20), out string? error);
+
+        Assert.True(result);
+        Assert.Null(error);
+        Assert.Empty(manager.Nets);
+    }
+
+    private static void SetUniqueMultiplayerID(Farmer farmer, long id)
+    {
+        var field = typeof(Farmer).GetField("uniqueMultiplayerID", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                    ?? typeof(Farmer).GetField("<UniqueMultiplayerID>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (field is not null)
+        {
+            var netLong = (Netcode.NetLong)FormatterServices.GetUninitializedObject(typeof(Netcode.NetLong));
+            typeof(Netcode.NetLong).GetProperty("Value")?.SetValue(netLong, id);
+            field.SetValue(farmer, netLong);
+        }
+    }
+
+    private static void SetLocationName(GameLocation location, string name)
+    {
+        // GameLocation.Name is backed by NetString field "name"
+        var field = typeof(GameLocation).GetField("name", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                    ?? typeof(GameLocation).GetField("<Name>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (field is not null)
+        {
+            var netString = (Netcode.NetString)FormatterServices.GetUninitializedObject(typeof(Netcode.NetString));
+            typeof(Netcode.NetString).GetProperty("Value")?.SetValue(netString, name);
+            field.SetValue(location, netString);
+        }
     }
 }
