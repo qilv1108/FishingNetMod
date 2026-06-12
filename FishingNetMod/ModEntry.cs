@@ -92,7 +92,7 @@ internal sealed class ModEntry : Mod
         if (e.Button.IsUseToolButton())
         {
             GameLocation fishingLocation = Game1.currentLocation;
-            if (this.activeFishingNet!.TryUse(Game1.player, fishingLocation, out ActiveFishingNetCast? cast))
+            if (this.activeFishingNet!.TryUse(Game1.player, fishingLocation, out ActiveFishingNetCast? cast, this.passiveNetManager))
             {
                 this.Helper.Input.Suppress(e.Button);
                 if (cast is not null)
@@ -179,14 +179,14 @@ internal sealed class ModEntry : Mod
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        this.questProgressTracker!.Load(this.Helper);
+        this.questProgressTracker!.Load(this.Helper, Game1.player.UniqueMultiplayerID);
         this.passiveNetManager!.Load(this.Helper);
         this.ApplyQuestUnlocks(Game1.player);
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
     {
-        this.questProgressTracker!.Save(this.Helper);
+        this.questProgressTracker!.Save(this.Helper, Game1.player.UniqueMultiplayerID);
         this.passiveNetManager!.Save(this.Helper);
     }
 
