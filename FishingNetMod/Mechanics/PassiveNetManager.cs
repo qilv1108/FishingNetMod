@@ -102,17 +102,21 @@ internal sealed class PassiveNetManager
     {
         foreach (PassiveNetData net in this.nets.Where(net => net.LocationName == location.Name).ToList())
         {
+            Farmer? owner = Game1.getFarmer(net.OwnerId);
+            if (owner is null)
+                continue;
+
             var range = GetDailyProductionRange(net.Level);
             int count = Game1.random.Next(range.Min, range.Max + 1);
             for (int i = 0; i < count; i++)
             {
-                Item? fish = this.fishProvider.GetFish(location, Game1.player, net.Tile);
+                Item? fish = this.fishProvider.GetFish(location, owner, net.Tile);
                 if (fish is null)
                     continue;
 
                 var harvest = new PassiveNetHarvestData(fish.QualifiedItemId, fish.Stack, fish.Quality);
                 net.Harvest.Add(harvest);
-                this.questProgressTracker?.RecordNetCatch(net.Level, harvest.Quality, Game1.currentSeason);
+                this.questProgressTracker?.RecordNetCatch(net.OwnerId, net.Level, harvest.Quality, Game1.currentSeason);
             }
         }
     }
