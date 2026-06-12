@@ -12,11 +12,11 @@ public sealed class QuestProgressTrackerTests
     {
         var tracker = new QuestProgressTracker();
 
-        tracker.RecordPassiveCatch(NetLevel.Copper, quality: 1, season: "spring");
-        tracker.RecordPassiveCatch(NetLevel.Copper, quality: 0, season: "spring");
-        tracker.RecordPassiveCatch(NetLevel.Iron, quality: 1, season: "spring");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Copper, quality: 1, season: "spring");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Copper, quality: 0, season: "spring");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Iron, quality: 1, season: "spring");
 
-        Assert.Equal(1, tracker.Progress.SilverFishCount);
+        Assert.Equal(1, tracker.GetOrCreateProgress(1234L).SilverFishCount);
     }
 
     [Fact]
@@ -24,13 +24,13 @@ public sealed class QuestProgressTrackerTests
     {
         var tracker = new QuestProgressTracker();
 
-        tracker.RecordNetCatch(NetLevel.Copper, quality: 1, season: "spring");
-        tracker.RecordNetCatch(NetLevel.Iron, quality: 2, season: "summer");
-        tracker.RecordNetCatch(NetLevel.Gold, quality: 0, season: "fall");
+        tracker.RecordNetCatch(playerId: 1234L, NetLevel.Copper, quality: 1, season: "spring");
+        tracker.RecordNetCatch(playerId: 1234L, NetLevel.Iron, quality: 2, season: "summer");
+        tracker.RecordNetCatch(playerId: 1234L, NetLevel.Gold, quality: 0, season: "fall");
 
-        Assert.Equal(1, tracker.Progress.SilverFishCount);
-        Assert.Equal(1, tracker.Progress.GoldFishCount);
-        Assert.Equal(new[] { "fall" }, tracker.Progress.SeasonsFished.ToArray());
+        Assert.Equal(1, tracker.GetOrCreateProgress(1234L).SilverFishCount);
+        Assert.Equal(1, tracker.GetOrCreateProgress(1234L).GoldFishCount);
+        Assert.Equal(new[] { "fall" }, tracker.GetOrCreateProgress(1234L).SeasonsFished.ToArray());
     }
 
     [Fact]
@@ -38,12 +38,12 @@ public sealed class QuestProgressTrackerTests
     {
         var tracker = new QuestProgressTracker();
 
-        tracker.RecordPassiveCatch(NetLevel.Iron, quality: 2, season: "summer");
-        tracker.RecordPassiveCatch(NetLevel.Iron, quality: 4, season: "summer");
-        tracker.RecordPassiveCatch(NetLevel.Iron, quality: 1, season: "summer");
-        tracker.RecordPassiveCatch(NetLevel.Gold, quality: 4, season: "summer");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Iron, quality: 2, season: "summer");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Iron, quality: 4, season: "summer");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Iron, quality: 1, season: "summer");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Gold, quality: 4, season: "summer");
 
-        Assert.Equal(2, tracker.Progress.GoldFishCount);
+        Assert.Equal(2, tracker.GetOrCreateProgress(1234L).GoldFishCount);
     }
 
     [Fact]
@@ -51,12 +51,12 @@ public sealed class QuestProgressTrackerTests
     {
         var tracker = new QuestProgressTracker();
 
-        tracker.RecordPassiveCatch(NetLevel.Gold, quality: 0, season: "spring");
-        tracker.RecordPassiveCatch(NetLevel.Gold, quality: 2, season: "spring");
-        tracker.RecordPassiveCatch(NetLevel.Gold, quality: 1, season: "winter");
-        tracker.RecordPassiveCatch(NetLevel.Iridium, quality: 4, season: "fall");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Gold, quality: 0, season: "spring");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Gold, quality: 2, season: "spring");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Gold, quality: 1, season: "winter");
+        tracker.RecordPassiveCatch(playerId: 1234L, NetLevel.Iridium, quality: 4, season: "fall");
 
-        Assert.Equal(new[] { "spring", "winter" }, tracker.Progress.SeasonsFished.OrderBy(season => season).ToArray());
+        Assert.Equal(new[] { "spring", "winter" }, tracker.GetOrCreateProgress(1234L).SeasonsFished.OrderBy(season => season).ToArray());
     }
 
     [Fact]
@@ -241,5 +241,22 @@ public sealed class QuestProgressTrackerTests
 
         Assert.Equal(new[] { FishingNetIds.IronNetRecipe }, plan.RecipesToUnlock);
         Assert.Empty(plan.MailToQueue);
+    }
+
+    [Fact]
+    public void RecordNetCatch_IsolatedByPlayerId()
+    {
+        var tracker = new QuestProgressTracker();
+
+        tracker.RecordNetCatch(playerId: 1L, NetLevel.Copper, quality: 1, season: "spring");
+        tracker.RecordNetCatch(playerId: 1L, NetLevel.Copper, quality: 1, season: "spring");
+        tracker.RecordNetCatch(playerId: 2L, NetLevel.Copper, quality: 1, season: "spring");
+
+        // player 1: 2 silver fish; player 2: 1 silver fish (独立)
+        QuestProgress p1 = tracker.GetOrCreateProgress(1L);
+        QuestProgress p2 = tracker.GetOrCreateProgress(2L);
+
+        Assert.Equal(2, p1.SilverFishCount);
+        Assert.Equal(1, p2.SilverFishCount);
     }
 }

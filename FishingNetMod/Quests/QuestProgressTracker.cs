@@ -1,6 +1,7 @@
 using FishingNetMod.Data;
 using FishingNetMod.Items;
 using StardewModdingAPI;
+using StardewValley;
 
 namespace FishingNetMod.Quests;
 
@@ -10,45 +11,82 @@ internal sealed class QuestProgressTracker
     public const int GoldFishRequiredForGoldNet = 10;
     public const int FishingLevelRequiredForCopperQuest = 1;
 
-    private const string SaveDataKey = "QuestProgress";
     private const int SilverQuality = 1;
     private const int GoldQuality = 2;
     private const int SeasonsRequiredForIridiumNet = 4;
 
-    public QuestProgress Progress { get; set; } = new();
+    private readonly Dictionary<long, QuestProgress> progressByPlayer = new();
 
-    public void Load(IModHelper helper)
+    internal QuestProgress GetOrCreateProgress(long playerId)
     {
-        this.Progress = Normalize(helper.Data.ReadSaveData<QuestProgress>(SaveDataKey));
+        if (!this.progressByPlayer.TryGetValue(playerId, out QuestProgress? progress))
+        {
+            progress = new QuestProgress();
+            this.progressByPlayer[playerId] = progress;
+        }
+
+        return progress;
     }
 
-    public void Save(IModHelper helper)
+    private static string SaveKey(long playerId) => $"QuestProgress_{playerId}";
+
+    public QuestProgress Progress
     {
-        helper.Data.WriteSaveData(SaveDataKey, Normalize(this.Progress));
+        get => this.GetOrCreateProgress(Game1.player?.UniqueMultiplayerID ?? 0);
+        set
+        {
+            long id = Game1.player?.UniqueMultiplayerID ?? 0;
+            this.progressByPlayer[id] = value;
+        }
     }
 
-    public void RecordPassiveCatch(NetLevel netLevel, int quality, string season)
+    public void Load(IModHelper helper, long playerId)
     {
-        this.RecordNetCatch(netLevel, quality, season);
+        QuestProgress? progress = Normalize(helper.Data.ReadSaveData<QuestProgress>(SaveKey(playerId)));
+        if (progress is not null)
+            this.progressByPlayer[playerId] = progress;
     }
 
-    public void RecordNetCatch(NetLevel netLevel, int quality, string season)
+    public void Load(IModHelper helper) => this.Load(helper, Game1.player?.UniqueMultiplayerID ?? 0);
+
+    public void Save(IModHelper helper, long playerId)
     {
+        if (this.progressByPlayer.TryGetValue(playerId, out QuestProgress? progress))
+            helper.Data.WriteSaveData(SaveKey(playerId), Normalize(progress));
+    }
+
+    public void Save(IModHelper helper) => this.Save(helper, Game1.player?.UniqueMultiplayerID ?? 0);
+
+    public void RecordPassiveCatch(long playerId, NetLevel netLevel, int quality, string season)
+    {
+        this.RecordNetCatch(playerId, netLevel, quality, season);
+    }
+
+    public void RecordPassiveCatch(NetLevel netLevel, int quality, string season) =>
+        this.RecordPassiveCatch(Game1.player?.UniqueMultiplayerID ?? 0, netLevel, quality, season);
+
+    public void RecordNetCatch(long playerId, NetLevel netLevel, int quality, string season)
+    {
+        QuestProgress progress = this.GetOrCreateProgress(playerId);
+
         switch (netLevel)
         {
             case NetLevel.Copper when quality == SilverQuality:
-                this.Progress.SilverFishCount++;
+                progress.SilverFishCount++;
                 break;
 
             case NetLevel.Iron when quality >= GoldQuality:
-                this.Progress.GoldFishCount++;
+                progress.GoldFishCount++;
                 break;
 
             case NetLevel.Gold when !string.IsNullOrWhiteSpace(season):
-                this.Progress.SeasonsFished.Add(season.Trim().ToLowerInvariant());
+                progress.SeasonsFished.Add(season.Trim().ToLowerInvariant());
                 break;
         }
     }
+
+    public void RecordNetCatch(NetLevel netLevel, int quality, string season) =>
+        this.RecordNetCatch(Game1.player?.UniqueMultiplayerID ?? 0, netLevel, quality, season);
 
     public QuestUnlockPlan EvaluateUnlocks(QuestPlayerSnapshot player)
     {
