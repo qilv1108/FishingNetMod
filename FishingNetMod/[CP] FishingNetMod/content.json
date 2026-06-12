@@ -1,5 +1,5 @@
 {
-  "Format": "2.0.0",
+  "Format": "2.5.0",
   "Changes": [
     {
       "Action": "Load",
@@ -14,7 +14,7 @@
           "Name": "Copper Fishing Net",
           "DisplayName": "{{i18n:item.copper.name}}",
           "Description": "{{i18n:item.copper.description}}",
-          "Type": "Crafting",
+          "Type": "Basic",
           "Category": -9,
           "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
           "SpriteIndex": 0
@@ -23,7 +23,7 @@
           "Name": "Iron Fishing Net",
           "DisplayName": "{{i18n:item.iron.name}}",
           "Description": "{{i18n:item.iron.description}}",
-          "Type": "Crafting",
+          "Type": "Basic",
           "Category": -9,
           "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
           "SpriteIndex": 1
@@ -32,7 +32,7 @@
           "Name": "Gold Fishing Net",
           "DisplayName": "{{i18n:item.gold.name}}",
           "Description": "{{i18n:item.gold.description}}",
-          "Type": "Crafting",
+          "Type": "Basic",
           "Category": -9,
           "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
           "SpriteIndex": 2
@@ -41,7 +41,7 @@
           "Name": "Iridium Fishing Net",
           "DisplayName": "{{i18n:item.iridium.name}}",
           "Description": "{{i18n:item.iridium.description}}",
-          "Type": "Crafting",
+          "Type": "Basic",
           "Category": -9,
           "Texture": "Mods/ChenJianCan.FishingNetMod/FishingNet",
           "SpriteIndex": 3
@@ -52,10 +52,10 @@
       "Action": "EditData",
       "Target": "Data/CraftingRecipes",
       "Entries": {
-        "FishingNet_Copper": "334 5 388 50 771 20/Home/(O)ChenJianCan.FishingNetMod_CopperNet/true/default/",
-        "FishingNet_Iron": "335 5 388 40 771 15 (O)ChenJianCan.FishingNetMod_CopperNet 1/Home/(O)ChenJianCan.FishingNetMod_IronNet/true/default/",
-        "FishingNet_Gold": "336 5 388 30 771 10 (O)ChenJianCan.FishingNetMod_IronNet 1/Home/(O)ChenJianCan.FishingNetMod_GoldNet/true/default/",
-        "FishingNet_Iridium": "337 5 388 20 771 5 (O)ChenJianCan.FishingNetMod_GoldNet 1/Home/(O)ChenJianCan.FishingNetMod_IridiumNet/true/default/"
+        "FishingNet_Copper": "(O)334 5 (O)388 50 (O)771 20/Home/(O)ChenJianCan.FishingNetMod_CopperNet/true/default/",
+        "FishingNet_Iron": "(O)335 5 (O)388 40 (O)771 15 (O)ChenJianCan.FishingNetMod_CopperNet 1/Home/(O)ChenJianCan.FishingNetMod_IronNet/true/default/",
+        "FishingNet_Gold": "(O)336 5 (O)388 30 (O)771 10 (O)ChenJianCan.FishingNetMod_IronNet 1/Home/(O)ChenJianCan.FishingNetMod_GoldNet/true/default/",
+        "FishingNet_Iridium": "(O)337 5 (O)388 20 (O)771 5 (O)ChenJianCan.FishingNetMod_GoldNet 1/Home/(O)ChenJianCan.FishingNetMod_IridiumNet/true/default/"
       }
     },
     {

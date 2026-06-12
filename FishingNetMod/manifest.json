@@ -6,5 +6,12 @@
   "UniqueID": "ChenJianCan.FishingNetMod",
   "EntryDll": "FishingNetMod.dll",
   "MinimumApiVersion": "4.0.0",
+  "Dependencies": [
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
+      "MinimumVersion": "2.0.0",
+      "IsRequired": true
+    }
+  ],
   "UpdateKeys": []
 }

@@ -1,0 +1,15 @@
+{
+  "item.copper.name": "铜捕鱼网",
+  "item.copper.description": "基础捕鱼网。可以手动撒网或放置在水中等待收获。",
+  "item.iron.name": "银捕鱼网",
+  "item.iron.description": "更坚固的银制捕鱼网，一次能捕获更多鱼。",
+  "item.gold.name": "金捕鱼网",
+  "item.gold.description": "高效捕鱼网，适合捕获高品质的鱼。",
+  "item.iridium.name": "铱捕鱼网",
+  "item.iridium.description": "顶级捕鱼网，轻便高效。",
+  "mail.copper": "我听说你最近对水域有了更多观察。来店里一趟，我有个主意想和你聊聊。   -威利",
+  "mail.iron": "你的铜网已经证明了实力。试试制作银网吧，它能帮你更快积累经验。   -威利",
+  "mail.gold": "想追求更好品质的话，金网是你的下一步。继续加油。   -威利",
+  "mail.iridium": "真正的精通来自四季不断的练习。铱网配方是你的了。   -威利",
+  "dialogue.willy.intro": "钓鱼不只有一种方式。试试捕鱼网，你或许能以不同的方式了解水域。"
+}
