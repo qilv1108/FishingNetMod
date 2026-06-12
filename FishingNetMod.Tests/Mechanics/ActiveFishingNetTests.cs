@@ -27,7 +27,7 @@ public sealed class ActiveFishingNetTests
 
         Assert.NotNull(type.GetMethod(
             "TryUse",
-            new[] { typeof(Farmer), typeof(GameLocation), typeof(ActiveFishingNetCast).MakeByRefType() }));
+            new[] { typeof(Farmer), typeof(GameLocation), typeof(ActiveFishingNetCast).MakeByRefType(), typeof(PassiveNetManager) }));
         Assert.NotNull(type.GetMethod(
             "CompleteCatch",
             new[] { typeof(Farmer), typeof(GameLocation), typeof(ActiveFishingNetCast) }));
