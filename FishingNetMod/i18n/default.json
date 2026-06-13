@@ -1,0 +1,16 @@
+{
+  "challenge.failure": "Fishing failed.",
+  "challenge.title": "Fishing Challenge",
+  "challenge.instruction": "Press the numbers in order within 30 seconds.",
+  "harvest.failure": "Harvest failed.",
+  "net.placed": "Fishing net placed.",
+  "harvest.success": "Net harvested.",
+  "error.already-placed": "You already have a fishing net placed.",
+  "error.tile-occupied": "There is already a fishing net here.",
+  "error.cannot-place": "Cannot place a fishing net here.",
+  "error.not-your-net": "This is not your fishing net.",
+  "error.cannot-cast": "Cannot cast a net here.",
+  "error.tile-has-net": "There is already a fishing net here.",
+  "cast.caught": "Caught {{count}} fish!",
+  "cast.no-fish": "No fish caught."
+}

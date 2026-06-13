@@ -23,8 +23,8 @@ internal sealed class ModEntry : Mod
         this.itemFactory = new FishingNetItemFactory();
         var fishProvider = new VanillaFishProvider();
         this.questProgressTracker = new QuestProgressTracker();
-        this.activeFishingNet = new ActiveFishingNet(this.Monitor, this.itemFactory, fishProvider, this.questProgressTracker);
-        this.passiveNetManager = new PassiveNetManager(this.itemFactory, fishProvider, this.questProgressTracker);
+        this.activeFishingNet = new ActiveFishingNet(this.Monitor, this.itemFactory, fishProvider, this.questProgressTracker, this.Helper.Translation);
+        this.passiveNetManager = new PassiveNetManager(this.itemFactory, fishProvider, this.questProgressTracker, this.Helper.Translation);
         this.passiveNetRenderer = new PassiveNetRenderer();
 
         helper.ConsoleCommands.Add(
@@ -99,10 +99,10 @@ internal sealed class ModEntry : Mod
                 {
                     Game1.activeClickableMenu = new NetHarvestChallengeMenu(
                         onSuccess: () => this.CompleteActiveFishing(Game1.player, fishingLocation, cast),
-                        onFailure: () => Game1.showRedMessage("捕鱼失败。"),
+                        onFailure: () => Game1.showRedMessage(this.Helper.Translation.Get("challenge.failure")),
                         targetNumbers: CreateActiveFishingChallengeDigits(),
-                        title: "捕鱼挑战",
-                        instruction: "按顺序输入显示的数字，在 30 秒内完成。");
+                        title: this.Helper.Translation.Get("challenge.title"),
+                        instruction: this.Helper.Translation.Get("challenge.instruction"));
                 }
             }
 
@@ -119,7 +119,7 @@ internal sealed class ModEntry : Mod
             this.Helper.Input.Suppress(e.Button);
             Game1.activeClickableMenu = new NetHarvestChallengeMenu(
                 onSuccess: () => this.CompletePassiveHarvest(Game1.player, location, targetTile),
-                onFailure: () => Game1.showRedMessage("收网失败。"));
+                onFailure: () => Game1.showRedMessage(this.Helper.Translation.Get("harvest.failure")));
             return;
         }
 
@@ -134,7 +134,7 @@ internal sealed class ModEntry : Mod
             return;
         }
 
-        Game1.addHUDMessage(new HUDMessage("渔网已放置。", HUDMessage.newQuest_type));
+        Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("net.placed"), HUDMessage.newQuest_type));
         this.Helper.Input.Suppress(e.Button);
     }
 
@@ -142,7 +142,7 @@ internal sealed class ModEntry : Mod
     {
         if (this.passiveNetManager!.TryHarvest(player, location, targetTile, out string? harvestError))
         {
-            Game1.addHUDMessage(new HUDMessage("收网成功。", HUDMessage.newQuest_type));
+            Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("harvest.success"), HUDMessage.newQuest_type));
             return;
         }
 

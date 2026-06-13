@@ -1,0 +1,16 @@
+{
+  "challenge.failure": "捕鱼失败。",
+  "challenge.title": "捕鱼挑战",
+  "challenge.instruction": "按顺序输入显示的数字，在 30 秒内完成。",
+  "harvest.failure": "收网失败。",
+  "net.placed": "渔网已放置。",
+  "harvest.success": "收网成功。",
+  "error.already-placed": "你已经放置了一个渔网。",
+  "error.tile-occupied": "这里已经有渔网了。",
+  "error.cannot-place": "这里不能放置渔网。",
+  "error.not-your-net": "这不是你的渔网。",
+  "error.cannot-cast": "这里不能撒网。",
+  "error.tile-has-net": "这里已经有渔网了。",
+  "cast.caught": "捕获了 {{count}} 条鱼！",
+  "cast.no-fish": "没有捕到鱼。"
+}

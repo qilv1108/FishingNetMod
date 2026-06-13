@@ -13,14 +13,19 @@ internal sealed class ActiveFishingNet
     private readonly FishingNetItemFactory itemFactory;
     private readonly IFishProvider fishProvider;
     private readonly QuestProgressTracker? questProgressTracker;
+    private readonly ITranslationHelper? translation;
 
-    public ActiveFishingNet(IMonitor monitor, FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null)
+    public ActiveFishingNet(IMonitor monitor, FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null, ITranslationHelper? translation = null)
     {
         this.monitor = monitor;
         this.itemFactory = itemFactory;
         this.fishProvider = fishProvider;
         this.questProgressTracker = questProgressTracker;
+        this.translation = translation;
     }
+
+    private string T(string key, string fallback)
+        => this.translation?.Get(key).ToString() ?? fallback;
 
     public bool TryUse(Farmer player, GameLocation location,
         out ActiveFishingNetCast? cast, PassiveNetManager? passiveNetManager = null)
@@ -33,13 +38,13 @@ internal sealed class ActiveFishingNet
         Vector2 targetTile = this.GetFacingTile(player);
         if (!location.isWaterTile((int)targetTile.X, (int)targetTile.Y))
         {
-            Game1.showRedMessage("这里不能撒网。");
+            Game1.showRedMessage(T("error.cannot-cast", "这里不能撒网。"));
             return true;
         }
 
         if (passiveNetManager?.TryGetHarvestableNet(location.Name, targetTile, out _) == true)
         {
-            Game1.showRedMessage("这里已经有渔网了。");
+            Game1.showRedMessage(T("error.tile-has-net", "这里已经有渔网了。"));
             cast = null;
             return true;
         }
@@ -71,7 +76,7 @@ internal sealed class ActiveFishingNet
             this.questProgressTracker?.RecordNetCatch(player.UniqueMultiplayerID, cast.NetData.Level, caught.Quality, Game1.currentSeason);
         }
 
-        Game1.addHUDMessage(new HUDMessage(cast.GetResultMessage(), HUDMessage.newQuest_type));
+        Game1.addHUDMessage(new HUDMessage(cast.GetResultMessage(this.translation), HUDMessage.newQuest_type));
         this.monitor.Log($"{player.Name} completed {cast.NetData.DisplayName} challenge and received {cast.CaughtCount} fish from {cast.Attempts} attempt(s).", LogLevel.Trace);
     }
 

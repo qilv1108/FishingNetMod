@@ -15,18 +15,30 @@ internal sealed class PassiveNetManager
     private readonly FishingNetItemFactory itemFactory;
     private readonly IFishProvider fishProvider;
     private readonly QuestProgressTracker? questProgressTracker;
+    private readonly ITranslationHelper? translation;
+    private readonly Func<string, int, Item> createHarvestItem;
 
     public PassiveNetManager()
         : this(new FishingNetItemFactory(), new VanillaFishProvider())
     {
     }
 
-    public PassiveNetManager(FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null)
+    public PassiveNetManager(
+        FishingNetItemFactory itemFactory,
+        IFishProvider fishProvider,
+        QuestProgressTracker? questProgressTracker = null,
+        ITranslationHelper? translation = null,
+        Func<string, int, Item>? createHarvestItem = null)
     {
         this.itemFactory = itemFactory;
         this.fishProvider = fishProvider;
         this.questProgressTracker = questProgressTracker;
+        this.translation = translation;
+        this.createHarvestItem = createHarvestItem ?? ((id, stack) => ItemRegistry.Create(id, stack));
     }
+
+    private string T(string key, string fallback)
+        => this.translation?.Get(key).ToString() ?? fallback;
 
     public IReadOnlyList<PassiveNetData> Nets => this.nets;
 
@@ -34,13 +46,13 @@ internal sealed class PassiveNetManager
     {
         if (this.nets.Any(net => net.OwnerId == data.OwnerId))
         {
-            error = "你已经放置了一个渔网。";
+            error = T("error.already-placed", "你已经放置了一个渔网。");
             return false;
         }
 
         if (this.nets.Any(net => net.LocationName == data.LocationName && net.Tile == data.Tile))
         {
-            error = "这里已经有渔网了。";
+            error = T("error.tile-occupied", "这里已经有渔网了。");
             return false;
         }
 
@@ -53,7 +65,7 @@ internal sealed class PassiveNetManager
     {
         if (!location.isWaterTile((int)targetTile.X, (int)targetTile.Y))
         {
-            error = "这里不能放置渔网。";
+            error = T("error.cannot-place", "这里不能放置渔网。");
             return false;
         }
 
@@ -75,13 +87,13 @@ internal sealed class PassiveNetManager
 
         if (data.OwnerId != player.UniqueMultiplayerID)
         {
-            error = "这不是你的渔网。";
+            error = T("error.not-your-net", "这不是你的渔网。");
             return false;
         }
 
         foreach (PassiveNetHarvestData harvest in data.Harvest)
         {
-            Item item = ItemRegistry.Create(harvest.QualifiedItemId, harvest.Stack);
+            Item item = this.createHarvestItem(harvest.QualifiedItemId, harvest.Stack);
             item.Quality = harvest.Quality;
             this.GiveOrDrop(player, location, item);
         }
@@ -102,7 +114,7 @@ internal sealed class PassiveNetManager
     {
         foreach (PassiveNetData net in this.nets.Where(net => net.LocationName == location.Name).ToList())
         {
-            Farmer? owner = Game1.getFarmer(net.OwnerId);
+            Farmer? owner = Game1.GetPlayer(net.OwnerId) ?? Game1.MasterPlayer;
             if (owner is null)
                 continue;
 
