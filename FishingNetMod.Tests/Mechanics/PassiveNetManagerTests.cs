@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 using FishingNetMod.Data;
+using FishingNetMod.Items;
 using FishingNetMod.Mechanics;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -116,10 +117,17 @@ public sealed class PassiveNetManagerTests
         Assert.Single(manager.Nets);
     }
 
-    [Fact(Skip = "Requires game initialization")]
+    [Fact]
     public void TryHarvest_AllowsOwner()
     {
-        var manager = new PassiveNetManager();
+        var manager = new PassiveNetManager(
+            new FishingNetItemFactory(),
+            new VanillaFishProvider(),
+            questProgressTracker: null,
+            translation: null,
+            createHarvestItem: null,
+            deliverHarvest: (player, location, data) => { });
+
         var net = new PassiveNetData(
             OwnerId: 1234L,
             LocationName: "Beach",

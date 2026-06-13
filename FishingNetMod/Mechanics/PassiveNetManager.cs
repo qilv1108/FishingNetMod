@@ -17,6 +17,7 @@ internal sealed class PassiveNetManager
     private readonly QuestProgressTracker? questProgressTracker;
     private readonly ITranslationHelper? translation;
     private readonly Func<string, int, Item> createHarvestItem;
+    private readonly Action<Farmer, GameLocation, PassiveNetData>? deliverHarvest;
 
     public PassiveNetManager()
         : this(new FishingNetItemFactory(), new VanillaFishProvider())
@@ -28,13 +29,15 @@ internal sealed class PassiveNetManager
         IFishProvider fishProvider,
         QuestProgressTracker? questProgressTracker = null,
         ITranslationHelper? translation = null,
-        Func<string, int, Item>? createHarvestItem = null)
+        Func<string, int, Item>? createHarvestItem = null,
+        Action<Farmer, GameLocation, PassiveNetData>? deliverHarvest = null)
     {
         this.itemFactory = itemFactory;
         this.fishProvider = fishProvider;
         this.questProgressTracker = questProgressTracker;
         this.translation = translation;
         this.createHarvestItem = createHarvestItem ?? ((id, stack) => ItemRegistry.Create(id, stack));
+        this.deliverHarvest = deliverHarvest;
     }
 
     private string T(string key, string fallback)
@@ -91,14 +94,22 @@ internal sealed class PassiveNetManager
             return false;
         }
 
-        foreach (PassiveNetHarvestData harvest in data.Harvest)
+        if (this.deliverHarvest != null)
         {
-            Item item = this.createHarvestItem(harvest.QualifiedItemId, harvest.Stack);
-            item.Quality = harvest.Quality;
-            this.GiveOrDrop(player, location, item);
+            this.deliverHarvest(player, location, data);
+        }
+        else
+        {
+            foreach (PassiveNetHarvestData harvest in data.Harvest)
+            {
+                Item item = this.createHarvestItem(harvest.QualifiedItemId, harvest.Stack);
+                item.Quality = harvest.Quality;
+                this.GiveOrDrop(player, location, item);
+            }
+
+            this.GiveOrDrop(player, location, this.itemFactory.Create(NetLevelData.Get(data.Level)));
         }
 
-        this.GiveOrDrop(player, location, this.itemFactory.Create(NetLevelData.Get(data.Level)));
         this.nets.Remove(data);
         error = null;
         return true;
