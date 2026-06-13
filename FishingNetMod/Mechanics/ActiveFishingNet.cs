@@ -14,37 +14,66 @@ internal sealed class ActiveFishingNet
     private readonly IFishProvider fishProvider;
     private readonly QuestProgressTracker? questProgressTracker;
     private readonly ITranslationHelper? translation;
+    private readonly Func<Farmer, NetLevelData?>? getHeldNet;
+    private readonly Func<GameLocation, int, int, bool>? isWaterTileFunc;
+    private readonly Func<Farmer, Vector2>? getTargetTile;
+    private readonly Action<string>? showRedMessage;
 
-    public ActiveFishingNet(IMonitor monitor, FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null, ITranslationHelper? translation = null)
+    public ActiveFishingNet(IMonitor monitor, FishingNetItemFactory itemFactory, IFishProvider fishProvider, QuestProgressTracker? questProgressTracker = null, ITranslationHelper? translation = null, Func<Farmer, NetLevelData?>? getHeldNet = null, Func<GameLocation, int, int, bool>? isWaterTileFunc = null, Func<Farmer, Vector2>? getTargetTile = null, Action<string>? showRedMessage = null)
     {
         this.monitor = monitor;
         this.itemFactory = itemFactory;
         this.fishProvider = fishProvider;
         this.questProgressTracker = questProgressTracker;
         this.translation = translation;
+        this.getHeldNet = getHeldNet;
+        this.isWaterTileFunc = isWaterTileFunc;
+        this.getTargetTile = getTargetTile;
+        this.showRedMessage = showRedMessage;
     }
 
     private string T(string key, string fallback)
         => this.translation?.Get(key).ToString() ?? fallback;
+
+    private void ShowRed(string message)
+    {
+        if (this.showRedMessage != null)
+            this.showRedMessage(message);
+        else
+            Game1.showRedMessage(message);
+    }
 
     public bool TryUse(Farmer player, GameLocation location,
         out ActiveFishingNetCast? cast, PassiveNetManager? passiveNetManager = null)
     {
         cast = null;
 
-        if (!this.itemFactory.TryGetNetData(player.CurrentItem, out NetLevelData? data) || data is null)
-            return false;
-
-        Vector2 targetTile = this.GetFacingTile(player);
-        if (!location.isWaterTile((int)targetTile.X, (int)targetTile.Y))
+        NetLevelData? data;
+        if (this.getHeldNet != null)
         {
-            Game1.showRedMessage(T("error.cannot-cast", "这里不能撒网。"));
+            data = this.getHeldNet(player);
+            if (data is null)
+                return false;
+        }
+        else if (!this.itemFactory.TryGetNetData(player.CurrentItem, out data) || data is null)
+        {
+            return false;
+        }
+
+        Vector2 targetTile = this.getTargetTile != null
+            ? this.getTargetTile(player)
+            : this.GetFacingTile(player);
+        if (this.isWaterTileFunc != null
+            ? !this.isWaterTileFunc(location, (int)targetTile.X, (int)targetTile.Y)
+            : !location.isWaterTile((int)targetTile.X, (int)targetTile.Y))
+        {
+            this.ShowRed(T("error.cannot-cast", "这里不能撒网。"));
             return true;
         }
 
         if (passiveNetManager?.TryGetHarvestableNet(location.Name, targetTile, out _) == true)
         {
-            Game1.showRedMessage(T("error.tile-has-net", "这里已经有渔网了。"));
+            this.ShowRed(T("error.tile-has-net", "这里已经有渔网了。"));
             cast = null;
             return true;
         }
