@@ -208,3 +208,18 @@ CP 通过 `content.json` 负责：
 4. **边界情况**：背包满时鱼掉落在地；没有鱼时出垃圾；不能在没有水的地方使用
 5. **多人游戏**：每个玩家有自己的网和任务进度（通过 `UniqueMultiplayerID` 隔离）
 6. **卸载重装**：放置网后保存 → 卸载 mod → 读档 → 重装 mod，验证数据恢复
+
+---
+
+## 类名演化对照（2026-06-13 追加）
+
+本文档中的类名基于早期设计，当前实现已有变化：
+
+| 早期设计名 | 当前实现名 | 文件位置 |
+|-----------|-----------|----------|
+| PassiveNetObject | PassiveNetData | Mechanics/PassiveNetData.cs |
+| NetPlacementManager | PassiveNetManager | Mechanics/PassiveNetManager.cs |
+| (无对应) | PassiveNetRenderer | Mechanics/PassiveNetRenderer.cs |
+| FishingNetMod | ModEntry | ModEntry.cs |
+| ChallengeMinigame | NetHarvestChallengeMenu | Menus/NetHarvestChallengeMenu.cs |
+| FishingNetChallenge | NetHarvestChallenge | Mechanics/NetHarvestChallenge.cs |
